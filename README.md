@@ -33,5 +33,6 @@ Or
 $query = "wmi/root/cimv2/*"
 $filter = "SELECT * FROM Win32_NetworkAdapterConfiguration WHERE IPEnabled = true";
 $dialect = "http://schemas.microsoft.com/wbem/wsman/1/WQL";
-$response = $session->enumerate($query, $filter, $dialect);
+
+$response = $session->Enumerate($query, $filter, $dialect);
 ```
