@@ -1,1 +1,1 @@
-# Wsman - A PHP package for WSMan (WS-Management Protocol)
+# Wsman - A PHP package for WS-Management Protocol
