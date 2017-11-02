@@ -24,13 +24,13 @@ class Wsman implements WsmanInterface
 	
     public function connect()
     {
-        $connectionOptions = $wsman->CreateConnectionOptions;
+        $connectionOptions = $this->com->CreateConnectionOptions;
         $connectionOptions->UserName = $this->getUsername();
         $connectionOptions->Password = $this->password;
 
-        //$flags = $wsman->SessionFlagUseBasic;
-        //$flags = $wsman->SessionFlagUseKerberos;
-        $flags = $wsman->SessionFlagCredUserNamePassword;
+        //$flags = $this->com->SessionFlagUseBasic;
+        //$flags = $this->com->SessionFlagUseKerberos;
+        $flags = $this->com->SessionFlagCredUserNamePassword;
 
         $session = $this->com->CreateSession($this->getHost(), $flags, $connectionOptions);
         if ($session) {
