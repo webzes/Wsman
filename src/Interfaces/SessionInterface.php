@@ -1,6 +1,6 @@
 <?php
 
-namespace c0py\Wsman;
+namespace c0py\Wsman\Interfaces;
 
 interface SessionInterface
 {
