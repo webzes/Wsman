@@ -41,7 +41,7 @@ class Session implements SessionInterface
         $response = $this->session->Get($query);
         $item = simplexml_load_string($response);
         $namespaces = $item->getNamespaces(true);
-        $results = $item->children($namespaces["p"]);
+        $results = $item->children(reset($namespaces));
         return $results;
     }
     
@@ -56,9 +56,7 @@ class Session implements SessionInterface
         while(!$response->AtEndOfStream) {
             $item = simplexml_load_string($response->ReadItem());
             $namespaces = $item->getNamespaces(true);
-            reset($namespaces);
-            $namespace = key($namespaces);
-            $results[] = $item->children($namespace);
+            $results[] = $item->children(reset($namespaces));
         }
         return $results;
     }
