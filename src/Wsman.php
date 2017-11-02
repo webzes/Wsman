@@ -1,6 +1,6 @@
 <?php
 
-namespace c0py\wsman
+namespace c0py\Wsman;
 
 use COM;
 use c0py\Wsman\Interfaces\WsmanInterface;
