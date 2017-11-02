@@ -33,7 +33,7 @@ class Session implements SessionInterface
     }
 
     /**
-     * Executes the specified query on the current connection.
+     * Executes the specified query on the current session.
      *
      * @param string $query
      *
@@ -44,26 +44,4 @@ class Session implements SessionInterface
         return $this->session->ExecQuery($query);
     }
     
-	/**
-     * Returns a new query builder instance.
-     *
-     * @return Builder
-     */
-    public function newQuery()
-    {
-        return new Builder($this, new Grammar());
-    }
-    
-	/**
-     * Handle dynamic method calls on the query builder object.
-     *
-     * @param string $method
-     * @param array  $parameters
-     *
-     * @return mixed
-     */
-    public function __call($method, $parameters)
-    {
-        return call_user_func_array([$this->newQuery(), $method], $parameters);
-    }
 }
