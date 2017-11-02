@@ -1,11 +1,7 @@
 <?php
 namespace c0py\Wsman;
-//use Stevebauman\Wmi\Processors\HardDisks;
-//use Stevebauman\Wmi\Processors\Processors;
-//use Stevebauman\Wmi\Processors\Registry;
-//use Stevebauman\Wmi\Processors\Software;
-//use Stevebauman\Wmi\Query\Builder;
-//use Stevebauman\Wmi\Query\Grammar;
+
+use c0py\Wsman\Interfaces\SessionInterface;
 
 class Session implements SessionInterface
 {
