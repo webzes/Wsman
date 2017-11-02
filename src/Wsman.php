@@ -16,7 +16,7 @@ class Wsman implements WsmanInterface
 	
     public function __construct($host = 'localhost', $username = null, $password = null, $com = null)
     {
-        $this->com = $com ? new COM($this->script);
+        $this->com = $com ?: new COM($this->script);
         $this->setHost($host);
         $this->setUsername($username);
         $this->setPassword($password);
