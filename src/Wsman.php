@@ -3,6 +3,7 @@
 namespace c0py\wsman
 
 use COM;
+use c0py\Wsman\Interfaces\WsmanInterface;
 
 class Wsman implements WsmanInterface
 {
@@ -21,17 +22,17 @@ class Wsman implements WsmanInterface
         $this->setPassword($password);
     }
 	
-	public function connect($namespace = '', $level = 3, $authLevel = 0)
+	public function connect()
     {
 		$connectionOptions = $wsman->CreateConnectionOptions;
 		$connectionOptions->UserName = $this->getUsername();
 		$connectionOptions->Password = $this->password;
 		
-		//$iFlags = $wsman->SessionFlagUseBasic;
-		//$iFlags = $wsman->SessionFlagUseKerberos;
-		$iFlags = $wsman->SessionFlagCredUserNamePassword;
+		//$flags = $wsman->SessionFlagUseBasic;
+		//$flags = $wsman->SessionFlagUseKerberos;
+		$flags = $wsman->SessionFlagCredUserNamePassword;
 	
-        $session = $this->com->CreateSession($this->getHost(), $iFlags, $connectionOptions);
+        $session = $this->com->CreateSession($this->getHost(), $flags, $connectionOptions);
         if ($session) {
             
             // Set the session
@@ -40,8 +41,6 @@ class Wsman implements WsmanInterface
         }
         return false;
     }
-
-	//print_r($response);
 
 	/* SESSION
 	Method	    Description
