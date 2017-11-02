@@ -2,6 +2,10 @@
 
 -- Coming soon!
 
+## Installation
+
+You don't (just yet). The package is not quite ready ^_^
+
 ## Usage
 
 ### Connecting
