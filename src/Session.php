@@ -22,26 +22,44 @@ class Session implements SessionInterface
         $this->session = $session;
     }
     
-	/**
-     * Returns the current raw COM session.
-     *
-     * @return mixed
-     */
-    public function get()
+    /* SESSION
+    Method	    Description
+    Create	    - Creates a new instance of a resource and returns the URI of the new object.
+    Delete	    - Deletes the resource specified in the resource URI.
+    Enumerate	- Enumerates a collection, table, or message log resource.
+    Get	        - Retrieves a resource from the service and returns an XML representation of the current instance of the resource.
+    Identify	- Queries a remote computer to determine if it supports the WS-Management protocol
+    Invoke	    - Invokes a method that returns the results of the method call.
+    Put	        - Updates a resource.
+    */
+    
+    //$query = "winrm/config";
+    //$query = "http://schemas.microsoft.com/wbem/wsman/1/wmi/root/cimv2/Win32_Service?Name=Spooler";
+    //$query = "http://schemas.microsoft.com/wbem/wsman/1/wmi/root/cimv2/Win32_OperatingSystem";
+    public function get($query)
     {
-        return $this->session;
+        $response = $this->session->Get($query);
+        $item = simplexml_load_string($response);
+        $namespaces = $item->getNamespaces(true);
+        $results = $item->children($namespaces["p"]);
+        return $results;
     }
-
-    /**
-     * Executes the specified query on the current session.
-     *
-     * @param string $query
-     *
-     * @return mixed
-     */
-    public function query($query)
+    
+    //$query = "wmi/root/cimv2/*"
+    //$filter = "SELECT * FROM Win32_NetworkAdapterConfiguration WHERE IPEnabled = true";
+    //$dialect = "http://schemas.microsoft.com/wbem/wsman/1/WQL";
+    public function enumerate($query, $filter, $dialect, $flags)
     {
-        return $this->session->ExecQuery($query);
+        $response = $this->session->Enumerate($query, $filter, $dialect);
+        
+        $results = [];
+        while(!$response->AtEndOfStream) {
+            $item = simplexml_load_string($response->ReadItem());
+            $namespaces = $item->getNamespaces(true);
+            //var_dump($namespaces);
+            $results[] = $item->children($namespaces["p"]);
+        }
+        return $results;
     }
     
 }

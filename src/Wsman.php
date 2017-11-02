@@ -42,17 +42,6 @@ class Wsman implements WsmanInterface
         return false;
     }
 
-    /* SESSION
-    Method	    Description
-    Create	    - Creates a new instance of a resource and returns the URI of the new object.
-    Delete	    - Deletes the resource specified in the resource URI.
-    Enumerate	- Enumerates a collection, table, or message log resource.
-    Get	        - Retrieves a resource from the service and returns an XML representation of the current instance of the resource.
-    Identify	- Queries a remote computer to determine if it supports the WS-Management protocol
-    Invoke	    - Invokes a method that returns the results of the method call.
-    Put	        - Updates a resource.
-    */
-
     /* ALIASES
     wmi      = http://schemas.microsoft.com/wbem/wsman/1/wmi
     wmicimv2 = http://schemas.microsoft.com/wbem/wsman/1/wmi/root/cimv2
@@ -62,46 +51,6 @@ class Wsman implements WsmanInterface
     shell    = http://schemas.microsoft.com/wbem/wsman/1/windows/shell
     */
 
-    //$response = $session->Get("http://schemas.microsoft.com/wbem/wsman/1/wmi/root/cimv2/Win32_Service?Name=Spooler");
-    //$response = $session->Get("http://schemas.microsoft.com/wbem/wsman/1/wmi/root/cimv2/Win32_OperatingSystem");
-    //$response = $session->Get("winrm/config");
-
-    /* Enumerate Properties = ($uri, $filter, $dialect, $flags) */
-    $filter = "SELECT * FROM Win32_NetworkAdapterConfiguration WHERE IPEnabled = true";
-    $dialect = "http://schemas.microsoft.com/wbem/wsman/1/WQL";
-    $response = $session->Enumerate("wmi/root/cimv2/*", $filter, $dialect);
-
-    /* Enumerate Responses */
-    $results = [];
-    while(!$response->AtEndOfStream) {
-        $item = simplexml_load_string($response->ReadItem());
-        $namespaces = $item->getNamespaces(true);
-        //var_dump($namespaces);
-        $results[] = $item->children($namespaces["p"]);
-    }
-    print_r($results);
-
-    public function transform($item)
-    {
-        $response = preg_replace("/(<\/?)(\w+):([^>]*>)/", "$1$2$3", $item);
-        $xml = new SimpleXMLElement(utf8_encode($response));
-        $json = json_encode($xml);
-        $responseArray = json_decode($json, true);
-        return $responseArray;
-    }
-    /* END Enumerate Responses */
-
-
-    /* GET Responses
-        $item = simplexml_load_string($response);
-        $namespaces = $item->getNamespaces(true);
-        var_dump($namespaces);
-        $results[] = $item->children($namespaces["p"]);
-        print_r($results);
-    */
-	
-	
-	
     /**
      * Returns the current session to the host.
      *
