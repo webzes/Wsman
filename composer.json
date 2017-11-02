@@ -1,0 +1,13 @@
+{
+    "name": "c0py/wsman",
+    "description": "WSMan for PHP",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "c0py",
+            "email": "danny.connolly@gmail.com"
+        }
+    ],
+    "require": {}
+}
