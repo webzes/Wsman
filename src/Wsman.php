@@ -4,6 +4,7 @@ namespace c0py\Wsman;
 
 use COM;
 use c0py\Wsman\Interfaces\WsmanInterface;
+use c0py\Wsman\Interfaces\SessionInterface;
 
 class Wsman implements WsmanInterface
 {
