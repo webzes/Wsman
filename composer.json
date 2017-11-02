@@ -9,5 +9,10 @@
             "email": "danny.connolly@gmail.com"
         }
     ],
+    "autoload": {
+        "psr-4": {
+            "c0py\\Wsman\\": "src/"
+        }
+    },
     "require": {}
 }
