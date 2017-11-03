@@ -11,7 +11,7 @@ You don't (just yet). The package is not quite ready ^_^
 ### Connecting
 
 ```php
-use c0py\Wsman;
+use c0py\Wsman\Wsman;
 
 $wsman = new Wsman($host = 'TARGET-PC', $username = 'test', $password = 'security');
 $session = $wsman->connect();
