@@ -22,13 +22,13 @@ $session = $wsman->connect();
 Get WinRM Config
 
 ```php
-$config = $session->Get("winrm/config");
+$config = $session->get("winrm/config");
 ```
 
 ### WMI Queries
 
 ```php
-$response = $session->Get('wmi/root/cimv2/Win32_OperatingSystem');
+$response = $session->get('wmi/root/cimv2/Win32_OperatingSystem');
 ```
 
 Or
@@ -38,5 +38,12 @@ $query = "wmi/root/cimv2/*"
 $filter = "SELECT * FROM Win32_NetworkAdapterConfiguration WHERE IPEnabled = true";
 $dialect = "http://schemas.microsoft.com/wbem/wsman/1/WQL";
 
-$response = $session->Enumerate($query, $filter, $dialect);
+$response = $session->enumerate($query, $filter, $dialect);
+```
+
+Or
+
+```php
+$filter = "SELECT Manufacturer FROM Win32_SystemEnclosure";
+echo $session->enumerate("wmi/root/cimv2/*", $filter)->Manufacturer;
 ```
