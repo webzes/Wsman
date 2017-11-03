@@ -42,6 +42,10 @@ class Wsman implements WsmanInterface
         }
         return false;
     }
+	
+    public function createResourceLocator($uri) {
+        return $this->com->CreateResourceLocator($uri);
+    }
 
     /* ALIASES
     wmi      = http://schemas.microsoft.com/wbem/wsman/1/wmi
