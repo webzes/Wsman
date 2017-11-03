@@ -45,10 +45,10 @@ class Session implements SessionInterface
         return json_decode(json_encode($results));
     }
     
-    //$query = "wmi/root/cimv2/*"
+    //$query = "wmi/root/cimv2/*";
     //$filter = "SELECT * FROM Win32_NetworkAdapterConfiguration WHERE IPEnabled = true";
     //$dialect = "http://schemas.microsoft.com/wbem/wsman/1/WQL";
-    public function enumerate($query, $filter, $dialect, $flags)
+    public function enumerate($query, $filter, $dialect, $flags = null)
     {
         $response = $this->session->Enumerate($query, $filter, $dialect);
         
