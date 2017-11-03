@@ -42,7 +42,7 @@ class Session implements SessionInterface
         $item = simplexml_load_string($response);
         $namespaces = $item->getNamespaces(true);
         $results = $item->children(reset($namespaces));
-        return $results;
+        return json_decode(json_encode($results));
     }
     
     //$query = "wmi/root/cimv2/*"
@@ -58,7 +58,7 @@ class Session implements SessionInterface
             $namespaces = $item->getNamespaces(true);
             $results[] = $item->children(reset($namespaces));
         }
-        return $results;
+        return json_decode(json_encode($results));
     }
     
 }
