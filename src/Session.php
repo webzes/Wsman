@@ -48,9 +48,9 @@ class Session implements SessionInterface
     //$query = "wmi/root/cimv2/*";
     //$filter = "SELECT * FROM Win32_NetworkAdapterConfiguration WHERE IPEnabled = true";
     //$dialect = "http://schemas.microsoft.com/wbem/wsman/1/WQL";
-    public function enumerate($query, $filter, $dialect, $flags = null)
+    public function enumerate($query, $filter = '', $dialect = '', $flags = false)
     {
-        $response = $this->session->Enumerate($query, $filter, $dialect);
+        $response = $this->session->Enumerate($query, $filter, $dialect, $flags);
         
         $results = [];
         while(!$response->AtEndOfStream) {
