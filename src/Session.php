@@ -40,7 +40,7 @@ class Session implements SessionInterface
     {
         try {
             $response = $this->session->Get($query);
-        catch(\com_exception $e) {
+	} catch(\com_exception $e) {
             //TODO: handle error - show for now
             echo $e->getMessage();
             return false;
@@ -59,7 +59,7 @@ class Session implements SessionInterface
     {
         try {
             $response = $this->session->Enumerate($query, $filter, $dialect, $flags);
-        catch(\com_exception $e) {
+	} catch(\com_exception $e) {
             //TODO: handle error - show for now
             echo $e->getMessage();
             return false;
