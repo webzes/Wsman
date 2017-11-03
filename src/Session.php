@@ -68,8 +68,12 @@ class Session implements SessionInterface
         $results = [];
         while(!$response->AtEndOfStream) {
             $item = simplexml_load_string($response->ReadItem());
-            $namespaces = $item->getNamespaces(true);
-            $results[] = $item->children(reset($namespaces));
+            if($item->count() > 0) {
+				$results = $item;
+			} else {
+				$namespaces = $item->getNamespaces(true);
+				$results[] = $item->children(reset($namespaces));
+			}
         }
         return json_decode(json_encode($results));
     }
