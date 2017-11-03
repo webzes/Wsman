@@ -38,7 +38,14 @@ class Session implements SessionInterface
     //$query = "http://schemas.microsoft.com/wbem/wsman/1/wmi/root/cimv2/Win32_OperatingSystem";
     public function get($query)
     {
-        $response = $this->session->Get($query);
+        try {
+            $response = $this->session->Get($query);
+        catch(\com_exception $e) {
+            //TODO: handle error - show for now
+            echo $e->getMessage();
+            return false;
+        }
+		
         $item = simplexml_load_string($response);
         $namespaces = $item->getNamespaces(true);
         $results = $item->children(reset($namespaces));
@@ -50,7 +57,13 @@ class Session implements SessionInterface
     //$dialect = "http://schemas.microsoft.com/wbem/wsman/1/WQL";
     public function enumerate($query, $filter = '', $dialect = '', $flags = false)
     {
-        $response = $this->session->Enumerate($query, $filter, $dialect, $flags);
+        try {
+            $response = $this->session->Enumerate($query, $filter, $dialect, $flags);
+        catch(\com_exception $e) {
+            //TODO: handle error - show for now
+            echo $e->getMessage();
+            return false;
+        }
         
         $results = [];
         while(!$response->AtEndOfStream) {
