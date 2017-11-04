@@ -45,5 +45,5 @@ Or
 
 ```php
 $filter = "SELECT Manufacturer FROM Win32_SystemEnclosure";
-echo $session->enumerate("wmi/root/cimv2/*", $filter)->Manufacturer;
+echo $session->enumerate("wmi/root/cimv2/*", $filter)[0]->Manufacturer;
 ```
