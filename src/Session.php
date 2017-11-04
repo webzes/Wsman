@@ -63,7 +63,11 @@ class Session implements SessionInterface
         while(!$response->AtEndOfStream) {
             $item = simplexml_load_string( utf8_encode( $response->ReadItem() ) );
             if($item->count() > 0) {
-                $results = $item;
+				if($item->count() == 1) {
+					$results = $item;
+				} else {
+					$results[] = $item;
+				}
             } else {
                 $namespaces = $item->getNamespaces(true);
                 $results[] = $item->children(reset($namespaces));
