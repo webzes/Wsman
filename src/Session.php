@@ -69,7 +69,6 @@ class Session implements SessionInterface
                 $results[] = $item->children(reset($namespaces));
             }
         }
-        if(sizeof($results) == 1) $results = $results[0];
         return json_decode(str_replace(':{}',':null',json_encode($results)));
     }
 }
