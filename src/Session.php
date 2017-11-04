@@ -63,16 +63,13 @@ class Session implements SessionInterface
         while(!$response->AtEndOfStream) {
             $item = simplexml_load_string( utf8_encode( $response->ReadItem() ) );
             if($item->count() > 0) {
-				if($item->count() == 1) {
-					$results = $item;
-				} else {
-					$results[] = $item;
-				}
+				$results[] = $item;
             } else {
                 $namespaces = $item->getNamespaces(true);
                 $results[] = $item->children(reset($namespaces));
             }
         }
+        if(sizeof($results) == 1) $results = $results[0];
         return json_decode(str_replace(':{}',':null',json_encode($results)));
     }
 }
