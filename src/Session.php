@@ -33,9 +33,6 @@ class Session implements SessionInterface
     Put         - Updates a resource.
     */
     
-    //$query = "winrm/config";
-    //$query = "wmi/root/cimv2/Win32_Service?Name=Spooler";
-    //$query = "wmi/root/cimv2/Win32_OperatingSystem";
     public function get($query)
     {
         try {
@@ -51,10 +48,7 @@ class Session implements SessionInterface
         $results = $item->children(reset($namespaces));
         return json_decode(json_encode($results));
     }
-
-    //$query = "wmi/root/cimv2/*";
-    //$filter = "SELECT * FROM Win32_NetworkAdapterConfiguration WHERE IPEnabled = true";
-    //$dialect = "http://schemas.microsoft.com/wbem/wsman/1/WQL";
+    
     public function enumerate($query, $filter = '', $dialect = 'http://schemas.microsoft.com/wbem/wsman/1/WQL', $flags = false)
     {
         try {
@@ -67,13 +61,13 @@ class Session implements SessionInterface
 
         $results = [];
         while(!$response->AtEndOfStream) {
-            $item = simplexml_load_string($response->ReadItem());
+            $item = simplexml_load_string( utf8_encode( $response->ReadItem() ) );
             if($item->count() > 0) {
-				$results = $item;
-			} else {
-				$namespaces = $item->getNamespaces(true);
-				$results[] = $item->children(reset($namespaces));
-			}
+                $results = $item;
+            } else {
+                $namespaces = $item->getNamespaces(true);
+                $results[] = $item->children(reset($namespaces));
+            }
         }
         return json_decode(json_encode($results));
     }
