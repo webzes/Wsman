@@ -60,14 +60,32 @@ class Session implements SessionInterface
         }
 
         $results = [];
+        $s=0;
         while(!$response->AtEndOfStream) {
             $item = simplexml_load_string( utf8_encode( $response->ReadItem() ) );
+            $namespaces = $item->getNamespaces(true);
+            $item->registerXPathNamespace('w','http://schemas.dmtf.org/wbem/wsman/1/wsman.xsd');
+
+            $isSelector = $item->xpath("//w:SelectorSet/w:Selector");
+
             if($item->count() > 0) {
-				$results[] = $item;
+                $results[] = $item;
             } else {
-                $namespaces = $item->getNamespaces(true);
-                $results[] = $item->children(reset($namespaces));
+                if($isSelector) {
+                    $item->registerXPathNamespace('p',$namespaces['p']);
+                    $nodes = $item->children(reset($namespaces));
+                    $i=0;
+                    foreach ($nodes as $node) {
+                        $nodeQuery = $node->xpath("//w:SelectorSet/w:Selector");
+                        $results[$s][$node->GetName()] = dom_import_simplexml($nodeQuery[$i])->textContent;
+                        ++$i;
+                    }
+
+                } else {
+                    $results[] = $item->children(reset($namespaces));
+                }
             }
+            ++$s;
         }
         return json_decode(str_replace(':{}',':null',json_encode($results)));
     }
