@@ -89,4 +89,32 @@ class Session implements SessionInterface
         }
         return json_decode(str_replace(':{}',':null',json_encode($results)));
     }
+    
+    public function invoke($method, $resource, $parameters, $flags = false)
+    {
+        $requestOptions = $this->options($method, $resource, $parameters);
+        
+        try {
+            $response = $this->session->Invoke($method, $resource, $requestOptions, $flags);
+        } catch(\com_exception $e) {
+            //TODO: handle error - show for now
+            echo $e->getMessage();
+            return false;
+        }
+        
+        $item = simplexml_load_string($response);
+        $namespaces = $item->getNamespaces(true);
+        $results = $item->children(reset($namespaces));
+        return json_decode(json_encode($results));
+    }
+    
+    private function options($method, $namespace, $keyPair)
+    {
+        $xml = '<p:'.$method.'_INPUT xmlns:p="'.$namespace.'">';
+        foreach($keyPair as $k => $v) {
+            $xml .= '<p:'.$k.'>'.$v.'</p:'.$k.'>';
+        }
+        $xml .= '</p:'.$method.'_INPUT>';
+        return $xml;
+    }
 }
