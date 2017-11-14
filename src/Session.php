@@ -90,7 +90,7 @@ class Session implements SessionInterface
         return json_decode(str_replace(':{}',':null',json_encode($results)));
     }
     
-    public function invoke($method, $resource, $parameters, $flags = false)
+    public function invoke($method, $resource, $parameters = null, $flags = false)
     {
         $requestOptions = $this->options($method, $resource, $parameters);
         
@@ -111,8 +111,10 @@ class Session implements SessionInterface
     private function options($method, $namespace, $keyPair)
     {
         $xml = '<p:'.$method.'_INPUT xmlns:p="'.$namespace.'">';
-        foreach($keyPair as $k => $v) {
-            $xml .= '<p:'.$k.'>'.$v.'</p:'.$k.'>';
+        if($keyPair) {
+            foreach($keyPair as $k => $v) {
+                $xml .= '<p:'.$k.'>'.$v.'</p:'.$k.'>';
+            }
         }
         $xml .= '</p:'.$method.'_INPUT>';
         return $xml;
