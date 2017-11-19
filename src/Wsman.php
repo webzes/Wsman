@@ -53,35 +53,9 @@ class Wsman
      *
      * @return $this
      */
-    public function setUrl($target, $transport)
+    public function setUrl($target, $auth)
     {
-        $targetParts = parse_url($target);
-
-        if (isset($targetParts['scheme'])) {
-            $scheme = $targetParts['scheme'];
-        }
-        else {
-            $scheme = ($transport == 'ssl') ? 'https' : 'http';
-        }
-
-        $host = $targetParts['host'];
-
-        if (isset($targetParts['port'])) {
-            $port = $targetParts['port'];
-        }
-        else {
-            $port = ($transport == 'ssl') ? 5986 : 5985;
-        }
-
-        if (isset($targetParts['path'])) {
-            $path = $targetParts['path'];
-            $path = ltrim($path, '/');
-        }
-        else {
-            $path = 'wsman';
-        }
-
-        $this->url = (string) $scheme."://".$host.":".$port."/".$path;
+        $this->url = (string) $this->buildUri($target, $auth);
         return $this;
     }
     
@@ -123,4 +97,37 @@ class Wsman
         $this->auth = (string) $auth;
         return $this;
     }
+	
+    private function buildUri($target, $auth)
+    {
+        $targetParts = parse_url($target);
+
+        if (isset($targetParts['scheme'])) {
+            $scheme = $targetParts['scheme'];
+        }
+        else {
+            $scheme = ($transport == 'ssl') ? 'https' : 'http';
+        }
+
+        $host = $targetParts['host'];
+
+        if (isset($targetParts['port'])) {
+            $port = $targetParts['port'];
+        }
+        else {
+            $port = ($transport == 'ssl') ? 5986 : 5985;
+        }
+
+        if (isset($targetParts['path'])) {
+            $path = $targetParts['path'];
+            $path = ltrim($path, '/');
+        }
+        else {
+            $path = 'wsman';
+        }
+        $ret = $scheme."://".$host.":".$port."/".$path;
+        
+        return $ret;
+    }
+
 }
