@@ -106,7 +106,7 @@ class Wsman
             $scheme = $targetParts['scheme'];
         }
         else {
-            $scheme = ($transport == 'ssl') ? 'https' : 'http';
+            $scheme = ($auth == 'ssl') ? 'https' : 'http';
         }
 
         $host = $targetParts['host'];
@@ -115,7 +115,7 @@ class Wsman
             $port = $targetParts['port'];
         }
         else {
-            $port = ($transport == 'ssl') ? 5986 : 5985;
+            $port = ($auth == 'ssl') ? 5986 : 5985;
         }
 
         if (isset($targetParts['path'])) {
