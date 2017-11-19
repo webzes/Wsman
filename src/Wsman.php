@@ -1,82 +1,31 @@
 <?php
-
 namespace c0py\Wsman;
 
-use COM;
-use c0py\Wsman\Interfaces\WsmanInterface;
-use c0py\Wsman\Interfaces\SessionInterface;
-
-class Wsman implements WsmanInterface
+class Wsman
 {
-    protected $host;
+    protected $url;
     protected $username;
     protected $password;
-    protected $session;
-    protected $com;
-    protected $script = 'Wsman.Automation';
+    protected $auth;
 	
-    public function __construct($host = 'localhost', $username = null, $password = null, $com = null)
+    public function __construct($target = 'localhost', $username = null, $password = null, $auth = 'plaintext')
     {
-        $this->com = $com ?: new COM($this->script);
-        $this->setHost($host);
         $this->setUsername($username);
         $this->setPassword($password);
+        $this->setAuthentication($auth);
+        $this->setUrl($target, $this->auth);
     }
 	
-    public function connect()
-    {
-        $connectionOptions = $this->com->CreateConnectionOptions;
-        $connectionOptions->UserName = $this->getUsername();
-        $connectionOptions->Password = $this->password;
-
-        //$flags = $this->com->SessionFlagUseBasic;
-        //$flags = $this->com->SessionFlagUseKerberos;
-        $flags = $this->com->SessionFlagCredUserNamePassword;
-
-        $session = $this->com->CreateSession($this->getHost(), $flags, $connectionOptions);
-        if ($session) {
-
-            // Set the session
-            $this->setSession(new Session($session));
-            return $this->session;
-        }
-        return false;
-    }
-	
-    public function createResourceLocator($uri) {
-        return $this->com->CreateResourceLocator($uri);
-    }
-
-    /* ALIASES
-    wmi      = http://schemas.microsoft.com/wbem/wsman/1/wmi
-    wmicimv2 = http://schemas.microsoft.com/wbem/wsman/1/wmi/root/cimv2
-    cimv2    = http://schemas.dmtf.org/wbem/wscim/1/cim-schema/2
-    winrm    = http://schemas.microsoft.com/wbem/wsman/1
-    wsman    = http://schemas.microsoft.com/wbem/wsman/1
-    shell    = http://schemas.microsoft.com/wbem/wsman/1/windows/shell
-    */
-
     /**
-     * Returns the current session to the host.
-     *
-     * @return bool|Session
-     */
-    public function getSession()
-    {
-        if ($this->session instanceof SessionInterface) {
-            return $this->session;
-        }
-        return false;
-    }
-    /**
-     * Returns the current host to connect to.
+     * Returns the current URL.
      *
      * @return string
      */
-    public function getHost()
+    public function getUrl()
     {
-        return $this->host;
+        return $this->url;
     }
+    
     /**
      * Returns the current username.
      *
@@ -86,30 +35,56 @@ class Wsman implements WsmanInterface
     {
         return $this->username;
     }
+    
     /**
-     * Sets the current connection.
+     * Returns the current username.
      *
-     * @param ConnectionInterface $connection
+     * @return string
+     */
+    public function getAuth()
+    {
+        return $this->auth;
+    }
+    
+    /**
+     * Sets the URL to connect to.
+     *
+     * @param string $target, $transport
      *
      * @return $this
      */
-    public function setSession(SessionInterface $session)
+    public function setUrl($target, $transport)
     {
-        $this->session = $session;
+        $targetParts = parse_url($target);
+
+        if (isset($targetParts['scheme'])) {
+            $scheme = $targetParts['scheme'];
+        }
+        else {
+            $scheme = ($transport == 'ssl') ? 'https' : 'http';
+        }
+
+        $host = $targetParts['host'];
+
+        if (isset($targetParts['port'])) {
+            $port = $targetParts['port'];
+        }
+        else {
+            $port = ($transport == 'ssl') ? 5986 : 5985;
+        }
+
+        if (isset($targetParts['path'])) {
+            $path = $targetParts['path'];
+            $path = ltrim($path, '/');
+        }
+        else {
+            $path = 'wsman';
+        }
+
+        $this->url = (string) $scheme."://".$host.":".$port."/".$path;
         return $this;
     }
-    /**
-     * Sets the host to connect to.
-     *
-     * @param string $host
-     *
-     * @return $this
-     */
-    public function setHost($host)
-    {
-        $this->host = (string) $host;
-        return $this;
-    }
+    
     /**
      * Sets the current username.
      *
@@ -122,6 +97,7 @@ class Wsman implements WsmanInterface
         $this->username = (string) $username;
         return $this;
     }
+    
     /**
      * Sets the current password.
      *
@@ -132,6 +108,19 @@ class Wsman implements WsmanInterface
     public function setPassword($password)
     {
         $this->password = (string) $password;
+        return $this;
+    }
+    
+    /**
+     * Sets the auth method.
+     *
+     * @param string $auth
+     *
+     * @return $this
+     */
+    public function setAuthentication($auth)
+    {
+        $this->auth = (string) $auth;
         return $this;
     }
 }
