@@ -8,42 +8,52 @@ You don't (just yet). The package is not quite ready ^_^
 
 ## Usage
 
-### Connecting
+### Create a client
 
 ```php
 use c0py\Wsman\Wsman;
 
-$wsman = new Wsman($host = 'TARGET-PC', $username = 'test', $password = 'security');
-$session = $wsman->connect();
+$client = new Wsman([
+        'location' => "http://TARGET-HOST:5985/wsman",
+        'login' => 'username',
+        'password' => 'passowrd',
+    ]);
 ```
 
 ### Simple Queries
 
+Identity target
+
+```php
+$response = $client->identify();
+```
+
 Get WinRM Config
 
 ```php
-$config = $session->get("winrm/config");
+$config = $client->get('winrm/config');
 ```
 
 ### WMI Queries
 
+Get Volume C:
 ```php
-$response = $session->get('wmi/root/cimv2/Win32_OperatingSystem');
+$response = $client->get('wmicimv2/Win32_logicaldisk', ['DeviceId' => 'C:']);
 ```
 
-Or
-
+List Windows Services:
 ```php
-$query = "wmi/root/cimv2/*"
-$filter = "SELECT * FROM Win32_NetworkAdapterConfiguration WHERE IPEnabled = true";
-$dialect = "http://schemas.microsoft.com/wbem/wsman/1/WQL";
-
-$response = $session->enumerate($query, $filter, $dialect);
+$response = $client->enumerate('wmicimv2/Win32_Service');
 ```
 
-Or
+### Windows Registy Query
 
 ```php
-$filter = "SELECT Manufacturer FROM Win32_SystemEnclosure";
-echo $session->enumerate("wmi/root/cimv2/*", $filter)[0]->Manufacturer;
+$params = [
+  'hDefKey' => '2147483650',
+  'sSubKeyName' => 'SOFTWARE\Microsoft\Windows NT\CurrentVersion',
+  'sValueName' => 'ProductName'
+];
+
+$response = $client->invoke('GetStringValue', 'wmi/root/default/StdRegProv', $params);
 ```

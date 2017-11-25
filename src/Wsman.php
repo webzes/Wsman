@@ -1,137 +1,110 @@
 <?php
-
 namespace c0py\Wsman;
 
-use COM;
-use c0py\Wsman\Interfaces\WsmanInterface;
-use c0py\Wsman\Interfaces\SessionInterface;
+use SoapClient;
+use c0py\Wsman\Request;
 
-class Wsman implements WsmanInterface
+class Wsman extends SoapClient
 {
-    protected $host;
-    protected $username;
-    protected $password;
-    protected $session;
-    protected $com;
-    protected $script = 'Wsman.Automation';
-	
-    public function __construct($host = 'localhost', $username = null, $password = null, $com = null)
-    {
-        $this->com = $com ?: new COM($this->script);
-        $this->setHost($host);
-        $this->setUsername($username);
-        $this->setPassword($password);
-    }
-	
-    public function connect()
-    {
-        $connectionOptions = $this->com->CreateConnectionOptions;
-        $connectionOptions->UserName = $this->getUsername();
-        $connectionOptions->Password = $this->password;
-
-        //$flags = $this->com->SessionFlagUseBasic;
-        //$flags = $this->com->SessionFlagUseKerberos;
-        $flags = $this->com->SessionFlagCredUserNamePassword;
-
-        $session = $this->com->CreateSession($this->getHost(), $flags, $connectionOptions);
-        if ($session) {
-
-            // Set the session
-            $this->setSession(new Session($session));
-            return $this->session;
-        }
-        return false;
-    }
-	
-    public function createResourceLocator($uri) {
-        return $this->com->CreateResourceLocator($uri);
-    }
-
-    /* ALIASES
-    wmi      = http://schemas.microsoft.com/wbem/wsman/1/wmi
-    wmicimv2 = http://schemas.microsoft.com/wbem/wsman/1/wmi/root/cimv2
-    cimv2    = http://schemas.dmtf.org/wbem/wscim/1/cim-schema/2
-    winrm    = http://schemas.microsoft.com/wbem/wsman/1
-    wsman    = http://schemas.microsoft.com/wbem/wsman/1
-    shell    = http://schemas.microsoft.com/wbem/wsman/1/windows/shell
+    /**
+    * @var array
     */
+    protected $options;
 
     /**
-     * Returns the current session to the host.
-     *
-     * @return bool|Session
-     */
-    public function getSession()
+    * @var string
+    */
+    protected $requestXml;
+
+    public function __construct($options = [])
     {
-        if ($this->session instanceof SessionInterface) {
-            return $this->session;
-        }
-        return false;
+        $this->options = $options;
+        //uri required by SoapClient in nonWSDL mode so we send empty string
+        $this->options['uri'] = '';
+
+        parent::__construct(null, $this->options);
     }
-    /**
-     * Returns the current host to connect to.
-     *
-     * @return string
-     */
-    public function getHost()
+
+    public function identify()
     {
-        return $this->host;
+      $request = new Request('Identify', $this->options);
+      $this->requestXml = $request->build();
+      return $this->__soapCall('identify', []);
     }
-    /**
-     * Returns the current username.
-     *
-     * @return string
-     */
-    public function getUsername()
+
+    public function get($resourceUri, $params = [])
     {
-        return $this->username;
+        $request = new Request('Get', $this->options, $resourceUri, $params);
+        $this->requestXml = $request->build();
+        return $this->__soapCall('get', []);
     }
-    /**
-     * Sets the current connection.
-     *
-     * @param ConnectionInterface $connection
-     *
-     * @return $this
-     */
-    public function setSession(SessionInterface $session)
+
+    /* need to finish Pull looping as only returning 51 results */
+    public function enumerate($resourceUri)
     {
-        $this->session = $session;
-        return $this;
+      $request = new Request('Enumerate', $this->options, $resourceUri);
+      $this->requestXml = $request->build();
+      $response = $this->__soapCall('enumerate', []); //should return a UUID
+
+      $items = [];
+      while( is_array($response) AND array_key_exists('EnumerationContext', $response) ) {
+        $response = $this->pull($resourceUri, $response['EnumerationContext']);
+        $results = current( (array)$response['Items'] );
+        $results = array_map(function($o){return (array)$o;}, $results);
+
+        array_push( $items, $results );
+      }
+
+      $allItems = array_merge(...$items);
+      return $allItems;
     }
-    /**
-     * Sets the host to connect to.
-     *
-     * @param string $host
-     *
-     * @return $this
-     */
-    public function setHost($host)
+
+    private function pull($resourceUri, $uuid)
     {
-        $this->host = (string) $host;
-        return $this;
+      $request = new Request('Pull', $this->options, $resourceUri, $uuid);
+      $this->requestXml = $request->build();
+      return $this->__soapCall('pull', []);
     }
-    /**
-     * Sets the current username.
-     *
-     * @param string $username
-     *
-     * @return $this
-     */
-    public function setUsername($username)
+
+    public function put()
     {
-        $this->username = (string) $username;
-        return $this;
+      //TODO
     }
-    /**
-     * Sets the current password.
-     *
-     * @param string $password
-     *
-     * @return $this
-     */
-    public function setPassword($password)
+
+    public function invoke($command, $resourceUri, $params = [])
     {
-        $this->password = (string) $password;
-        return $this;
+      $request = new Request('Invoke', $this->options, $resourceUri, $params, $command);
+      $this->requestXml = $request->build();
+      return $this->__soapCall('invoke', []);
+    }
+
+    public function __doRequest($request, $location, $action, $version, $one_way = false)
+    {
+        $this->__last_request = $this->requestXml;
+
+        $handle = curl_init($this->options['location']);
+
+        $credentials = $this->options['login'] . ':' . $this->options['password'];
+        $headers = [
+            'Method: POST',
+            'User-Agent: PHP-SOAP-CURL',
+            'Content-Type: application/soap+xml; charset=utf-8',
+            //'SOAPAction: "' . $action . '"'
+        ];
+
+        curl_setopt($handle, CURLINFO_HEADER_OUT, true);
+        curl_setopt($handle, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($handle, CURLOPT_HTTPHEADER, $headers);
+        curl_setopt($handle, CURLOPT_POST, true);
+        curl_setopt($handle, CURLOPT_POSTFIELDS, $this->requestXml);
+        curl_setopt($handle, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
+
+        // Authentication
+        //curl_setopt($handle, CURLOPT_HTTPAUTH, CURLAUTH_NTLM);
+        curl_setopt($handle, CURLOPT_USERPWD, $credentials);
+
+        $response = curl_exec($handle);
+
+        return $response;
     }
 }
