@@ -57,3 +57,15 @@ $params = [
 
 $response = $client->invoke('GetStringValue', 'wmi/root/default/StdRegProv', $params);
 ```
+
+## TODO
+
+- [ ] Support for Digest Authentication
+- [ ] Support for NTLM Authentication
+- [ ] Support for Kerberos Authentication
+- [ ] Implement Put Method
+- [ ] Implement Delete Method
+- [ ] Use Guzzlehttp client instead of CURL
+- [ ] Test againsts non-Windows based devices
+- [ ] Handle/Remove hard-coded Microsoft Schema namespaces in SOAP headers
+- [ ] Handle/Remove hard-coded language tags in SOAP headers
