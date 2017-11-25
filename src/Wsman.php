@@ -1,133 +1,110 @@
 <?php
 namespace c0py\Wsman;
 
-class Wsman
+use SoapClient;
+use c0py\Wsman\Request;
+
+class Wsman extends SoapClient
 {
-    protected $url;
-    protected $username;
-    protected $password;
-    protected $auth;
-	
-    public function __construct($target = 'localhost', $username = null, $password = null, $auth = 'plaintext')
-    {
-        $this->setUsername($username);
-        $this->setPassword($password);
-        $this->setAuthentication($auth);
-        $this->setUrl($target, $this->auth);
-    }
-	
     /**
-     * Returns the current URL.
-     *
-     * @return string
-     */
-    public function getUrl()
-    {
-        return $this->url;
-    }
-    
-    /**
-     * Returns the current username.
-     *
-     * @return string
-     */
-    public function getUsername()
-    {
-        return $this->username;
-    }
-    
-    /**
-     * Returns the current username.
-     *
-     * @return string
-     */
-    public function getAuth()
-    {
-        return $this->auth;
-    }
-    
-    /**
-     * Sets the URL to connect to.
-     *
-     * @param string $target, $transport
-     *
-     * @return $this
-     */
-    public function setUrl($target, $auth)
-    {
-        $this->url = (string) $this->buildUri($target, $auth);
-        return $this;
-    }
-    
-    /**
-     * Sets the current username.
-     *
-     * @param string $username
-     *
-     * @return $this
-     */
-    public function setUsername($username)
-    {
-        $this->username = (string) $username;
-        return $this;
-    }
-    
-    /**
-     * Sets the current password.
-     *
-     * @param string $password
-     *
-     * @return $this
-     */
-    public function setPassword($password)
-    {
-        $this->password = (string) $password;
-        return $this;
-    }
-    
-    /**
-     * Sets the auth method.
-     *
-     * @param string $auth
-     *
-     * @return $this
-     */
-    public function setAuthentication($auth)
-    {
-        $this->auth = (string) $auth;
-        return $this;
-    }
-	
-    private function buildUri($target, $auth)
-    {
-        $targetParts = parse_url($target);
+    * @var array
+    */
+    protected $options;
 
-        if (isset($targetParts['scheme'])) {
-            $scheme = $targetParts['scheme'];
-        }
-        else {
-            $scheme = ($auth == 'ssl') ? 'https' : 'http';
-        }
+    /**
+    * @var string
+    */
+    protected $requestXml;
 
-        $host = $targetParts['host'];
+    public function __construct($options = [])
+    {
+        $this->options = $options;
+        //uri required by SoapClient in nonWSDL mode so we send empty string
+        $this->options['uri'] = '';
 
-        if (isset($targetParts['port'])) {
-            $port = $targetParts['port'];
-        }
-        else {
-            $port = ($auth == 'ssl') ? 5986 : 5985;
-        }
-
-        if (isset($targetParts['path'])) {
-            $path = $targetParts['path'];
-            $path = ltrim($path, '/');
-        }
-        else {
-            $path = 'wsman';
-        }
-        $ret = $scheme."://".$host.":".$port."/".$path;
-        
-        return $ret;
+        parent::__construct(null, $this->options);
     }
 
+    public function identify()
+    {
+      $request = new Request('Identify', $this->options);
+      $this->requestXml = $request->build();
+      return $this->__soapCall('identify', []);
+    }
+
+    public function get($resourceUri, $params = [])
+    {
+        $request = new Request('Get', $this->options, $resourceUri, $params);
+        $this->requestXml = $request->build();
+        return $this->__soapCall('get', []);
+    }
+
+    /* need to finish Pull looping as only returning 51 results */
+    public function enumerate($resourceUri)
+    {
+      $request = new Request('Enumerate', $this->options, $resourceUri);
+      $this->requestXml = $request->build();
+      $response = $this->__soapCall('enumerate', []); //should return a UUID
+
+      $items = [];
+      while( is_array($response) AND array_key_exists('EnumerationContext', $response) ) {
+        $response = $this->pull($resourceUri, $response['EnumerationContext']);
+        $results = current( (array)$response['Items'] );
+        $results = array_map(function($o){return (array)$o;}, $results);
+
+        array_push( $items, $results );
+      }
+
+      $allItems = array_merge(...$items);
+      return $allItems;
+    }
+
+    private function pull($resourceUri, $uuid)
+    {
+      $request = new Request('Pull', $this->options, $resourceUri, $uuid);
+      $this->requestXml = $request->build();
+      return $this->__soapCall('pull', []);
+    }
+
+    public function put()
+    {
+      //TODO
+    }
+
+    public function invoke($command, $resourceUri, $params = [])
+    {
+      $request = new Request('Invoke', $this->options, $resourceUri, $params, $command);
+      $this->requestXml = $request->build();
+      return $this->__soapCall('invoke', []);
+    }
+
+    public function __doRequest($request, $location, $action, $version, $one_way = false)
+    {
+        $this->__last_request = $this->requestXml;
+
+        $handle = curl_init($this->options['location']);
+
+        $credentials = $this->options['login'] . ':' . $this->options['password'];
+        $headers = [
+            'Method: POST',
+            'User-Agent: PHP-SOAP-CURL',
+            'Content-Type: application/soap+xml; charset=utf-8',
+            //'SOAPAction: "' . $action . '"'
+        ];
+
+        curl_setopt($handle, CURLINFO_HEADER_OUT, true);
+        curl_setopt($handle, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($handle, CURLOPT_HTTPHEADER, $headers);
+        curl_setopt($handle, CURLOPT_POST, true);
+        curl_setopt($handle, CURLOPT_POSTFIELDS, $this->requestXml);
+        curl_setopt($handle, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
+
+        // Authentication
+        //curl_setopt($handle, CURLOPT_HTTPAUTH, CURLAUTH_NTLM);
+        curl_setopt($handle, CURLOPT_USERPWD, $credentials);
+
+        $response = curl_exec($handle);
+
+        return $response;
+    }
 }
