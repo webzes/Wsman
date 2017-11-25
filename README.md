@@ -14,15 +14,15 @@ You don't (just yet). The package is not quite ready ^_^
 use c0py\Wsman\Wsman;
 
 $client = new Wsman([
-		    'location' => "http://TARGET-HOST:5985/wsman",
-		    'login' => 'username',
-		    'password' => 'passowrd',
-		]);
+        'location' => "http://TARGET-HOST:5985/wsman",
+        'login' => 'username',
+        'password' => 'passowrd',
+    ]);
 ```
 
 ### Simple Queries
 
-Get Indetity
+Get Identity
 
 ```php
 $response = $client->identify();
