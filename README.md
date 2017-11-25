@@ -22,7 +22,7 @@ $client = new Wsman([
 
 ### Simple Queries
 
-Get Identity
+Identity target
 
 ```php
 $response = $client->identify();
