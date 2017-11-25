@@ -34,10 +34,16 @@ Get WinRM Config
 $config = $client->get('winrm/config');
 ```
 
-### WMI Query
+### WMI Queries
 
+Get Volume C:
 ```php
 $response = $client->get('wmicimv2/Win32_logicaldisk', ['DeviceId' => 'C:']);
+```
+
+List Windows Services:
+```php
+$response = $client->enumerate('wmicimv2/Win32_Service');
 ```
 
 ### Windows Registy Query
