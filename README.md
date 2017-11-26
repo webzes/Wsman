@@ -16,7 +16,7 @@ use c0py\Wsman\Wsman;
 $client = new Wsman([
         'location' => "http://TARGET-HOST:5985/wsman",
         'login' => 'username',
-        'password' => 'passowrd',
+        'password' => 'password',
     ]);
 ```
 
