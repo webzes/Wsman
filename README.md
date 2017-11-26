@@ -71,7 +71,7 @@ $response = $client->invoke('GetStringValue', 'wmi/root/default/StdRegProv', $pa
 - [ ] Implement Put Method
 - [ ] Implement Delete Method
 - [ ] Handle Errors and failed requests
-- [ ] Use Guzzlehttp client instead of plain CURL
+- [x] Use Guzzlehttp client instead of plain CURL
 - [ ] Test againsts non-Windows based devices
 - [ ] Handle/Remove hard-coded Microsoft Schema namespaces in SOAP headers
 - [ ] Handle/Remove hard-coded language tags in SOAP headers
