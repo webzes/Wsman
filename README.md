@@ -14,7 +14,7 @@ You don't (just yet). The package is not quite ready ^_^
 use c0py\Wsman\Wsman;
 
 $client = new Wsman([
-        'location' => "http://TARGET-HOST:5985/wsman",
+        'location' => "http://TARGET-HOST:5985",
         'login' => 'username',
         'password' => 'password',
     ]);
