@@ -3,6 +3,9 @@ namespace c0py\Wsman;
 
 use SoapClient;
 use c0py\Wsman\Request;
+use GuzzleHttp\Client;
+use GuzzleHttp\Exception\ServerException;
+use GuzzleHttp\Exception\ClientException;
 
 class Wsman extends SoapClient
 {
@@ -21,6 +24,10 @@ class Wsman extends SoapClient
         $this->options = $options;
         //uri required by SoapClient in nonWSDL mode so we send empty string
         $this->options['uri'] = '';
+        //default auth to basic if not specified
+        $this->options['auth'] = array_key_exists('auth', $this->options) ? $this->options['auth'] : 'basic';
+        //default timeout to 2.0 if not specified
+        $this->options['timeout'] = array_key_exists('timeout', $this->options) ? $this->options['timeout'] : 2.0;
 
         parent::__construct(null, $this->options);
     }
@@ -39,7 +46,6 @@ class Wsman extends SoapClient
         return $this->__soapCall('get', []);
     }
 
-    /* need to finish Pull looping as only returning 51 results */
     public function enumerate($resourceUri)
     {
       $request = new Request('Enumerate', $this->options, $resourceUri);
@@ -82,29 +88,58 @@ class Wsman extends SoapClient
     {
         $this->__last_request = $this->requestXml;
 
-        $handle = curl_init($this->options['location']);
+        $clientOptions = [];
+        $postOptions = [];
 
-        $credentials = $this->options['login'] . ':' . $this->options['password'];
-        $headers = [
-            'Method: POST',
-            'User-Agent: PHP-SOAP-CURL',
-            'Content-Type: application/soap+xml; charset=utf-8',
-            //'SOAPAction: "' . $action . '"'
+        $clientOptions['base_uri'] = $this->options['location'];
+
+        if($this->options['auth'] == 'negotiate') {
+          $postOptions['curl'] = [
+                    CURLOPT_HTTPAUTH => CURLAUTH_NEGOTIATE,
+                    CURLOPT_USERPWD => ":"
+                  ];
+        } else {
+          $clientOptions['auth'] = [
+                    $this->options['login'],
+                    $this->options['password'],
+                    $this->options['auth']
+                  ];
+        }
+
+        // hack
+        if($this->options['auth'] == 'digest') {
+          $postOptions['curl'][CURLOPT_COOKIEJAR] = tmpfile();
+          $postOptions['curl'][CURLOPT_COOKIEFILE] = tmpfile();
+        }
+
+        $clientOptions['timeout'] = $this->options['timeout'];
+
+        $client = new Client($clientOptions);
+
+        $postOptions['body'] = $this->requestXml;
+        $postOptions['headers'] = [
+            'Content-Type'  => 'application/soap+xml;charset=UTF-8',
+            'User-Agent'    => 'PHP-SOAP-CURL',
         ];
 
-        curl_setopt($handle, CURLINFO_HEADER_OUT, true);
-        curl_setopt($handle, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($handle, CURLOPT_HTTPHEADER, $headers);
-        curl_setopt($handle, CURLOPT_POST, true);
-        curl_setopt($handle, CURLOPT_POSTFIELDS, $this->requestXml);
-        curl_setopt($handle, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
+        try {
+            $response = $client->post('/wsman', $postOptions);
 
-        // Authentication
-        //curl_setopt($handle, CURLOPT_HTTPAUTH, CURLAUTH_NTLM);
-        curl_setopt($handle, CURLOPT_USERPWD, $credentials);
+        } catch (GuzzleHttp\Exception\ServerException $e) {
+          echo 'Exception:' . $e->getResponse()->getBody()->getContents();
+          return;
+        } catch (GuzzleHttp\Exception\ClientException $e) {
+          echo 'Exception:' . $e->getResponse()->getBody()->getContents();
+          return;
+        } catch (\GuzzleHttp\Exception\RequestException $e) {
+          echo 'Exception:' . $e->getResponse()->getBody()->getContents();
+          return;
+        }
 
-        $response = curl_exec($handle);
+        if ($response->getStatusCode() === 200) {
+          return $response->getBody()->getContents();
+        }
 
-        return $response;
+        return false;
     }
 }
