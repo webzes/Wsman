@@ -52,17 +52,25 @@ class Wsman extends SoapClient
       $this->requestXml = $request->build();
       $response = $this->__soapCall('enumerate', []); //should return a UUID
 
-      $items = [];
-      while( is_array($response) AND array_key_exists('EnumerationContext', $response) ) {
-        $response = $this->pull($resourceUri, $response['EnumerationContext']);
-        $results = current( (array)$response['Items'] );
-        $results = array_map(function($o){return (array)$o;}, $results);
+	  if(empty($response['EnumerationContext'])) {
+		  return $response;
+	  } else {
+		  $items = [];
+		  while( is_array($response) AND array_key_exists('EnumerationContext', $response) ) {
+			$response = $this->pull($resourceUri, $response['EnumerationContext']);
+			$results = current( (array)$response['Items'] );
+			$results = array_map(function($o){return (array)$o;}, $results);
 
-        array_push( $items, $results );
-      }
+			array_push( $items, $results );
+			
+			if(array_key_exists('EndOfSequence', $response)) {
+				break;
+			}
+		  }
 
-      $allItems = array_merge(...$items);
-      return $allItems;
+		  $allItems = array_merge(...$items);
+		  return $allItems;
+	  }
     }
 
     private function pull($resourceUri, $uuid)
