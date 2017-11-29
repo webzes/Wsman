@@ -53,7 +53,8 @@ class Wsman extends SoapClient
       $response = $this->__soapCall('enumerate', []); //should return a UUID
 
 	  if(empty($response['EnumerationContext'])) {
-		  return $response;
+		$results = current( (array)$response['Items'] );
+		return (array)$results;
 	  } else {
 		  $items = [];
 		  while( is_array($response) AND array_key_exists('EnumerationContext', $response) ) {
