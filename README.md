@@ -46,6 +46,16 @@ List Windows Services:
 $response = $client->enumerate('wmicimv2/Win32_Service');
 ```
 
+Using WQL:
+
+```
+$params = [
+	'dialect' => 'WQL',
+	'query' => 'select * from Win32_Service WHERE DelayedAutoStart = "true"'
+];
+$results = $client->enumerate('wmicimv2/*', $params);
+```
+
 ### Windows Registy Query
 
 ```php
