@@ -46,32 +46,40 @@ class Wsman extends SoapClient
         return $this->__soapCall('get', []);
     }
 
-    public function enumerate($resourceUri)
+    /* Enumeration Parameters
+
+    //WQL Example
+    $params = [
+        'dialect' => 'WQL',
+        'query' => 'select Availability from Win32_Processor'
+    ];
+
+    //Filter Example
+    $params = [
+        'dialect' => 'Filter',
+        'filters' => [
+            'Name' => 'Bob',
+            'Age' => '23'
+        ]
+    ];
+    */
+    public function enumerate($resourceUri, $params = [])
     {
-      $request = new Request('Enumerate', $this->options, $resourceUri);
+      $request = new Request('Enumerate', $this->options, $resourceUri, $params);
       $this->requestXml = $request->build();
-      $response = $this->__soapCall('enumerate', []); //should return a UUID
+      $response = $this->__soapCall('enumerate', []);
 
-	  if(empty($response['EnumerationContext'])) {
-		$results = current( (array)$response['Items'] );
-		return (array)$results;
-	  } else {
-		  $items = [];
-		  while( is_array($response) AND array_key_exists('EnumerationContext', $response) ) {
-			$response = $this->pull($resourceUri, $response['EnumerationContext']);
-			$results = current( (array)$response['Items'] );
-			$results = array_map(function($o){return (array)$o;}, $results);
+      $items = [];
+      while( is_array($response) AND array_key_exists('EnumerationContext', $response) ) {
+        $response = $this->pull($resourceUri, $response['EnumerationContext']);
+        $results = current( (array)$response['Items'] );
+        $results = array_map(function($o){return (array)$o;}, $results);
 
-			array_push( $items, $results );
-			
-			if(array_key_exists('EndOfSequence', $response)) {
-				break;
-			}
-		  }
+        array_push( $items, $results );
+      }
 
-		  $allItems = array_merge(...$items);
-		  return $allItems;
-	  }
+      $allItems = array_merge(...$items);
+      return $allItems;
     }
 
     private function pull($resourceUri, $uuid)
