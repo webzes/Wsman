@@ -133,7 +133,7 @@ class Request
     $hSequenceId = $header->appendChild($hSequenceId);
 
     if($this->method == 'Get' AND $this->params) {
-      $doc = $this->selectors($this->params, $doc, $header);
+      $doc = $this->selectors($doc, $header);
     }
 
     $hTimeout = $doc->createElementNS('http://schemas.dmtf.org/wbem/wsman/1/wsman.xsd', 'w:OperationTimeout', 'PT60.000S');
@@ -151,6 +151,10 @@ class Request
 
       $bMaxElements = $doc->createElementNS('http://schemas.dmtf.org/wbem/wsman/1/wsman.xsd', 'w:MaxElements', 32000);
       $bMaxElements = $bEnum->appendChild($bMaxElements);
+
+      if($this->params) {
+        $doc = $this->filters($doc, $bEnum);
+      }
     }
 
     if($this->method == "Pull") {
@@ -217,20 +221,58 @@ class Request
     return $hAction;
   }
 
-  public function selectors($params, $doc, $header)
+  public function selectors($doc, $header)
   {
-
     $hSelSet = $doc->createElementNS('http://schemas.dmtf.org/wbem/wsman/1/wsman.xsd', 'w:SelectorSet');
     $hSelSet = $header->appendChild($hSelSet);
 
-    $hSelector = $doc->createElementNS('http://schemas.dmtf.org/wbem/wsman/1/wsman.xsd', 'w:Selector', current($params));
-    $hSelector = $hSelSet->appendChild($hSelector);
+    foreach($this->params as $name => $value) {
+      $hSelector = $doc->createElementNS('http://schemas.dmtf.org/wbem/wsman/1/wsman.xsd', 'w:Selector', $name);
+      $hSelector = $hSelSet->appendChild($hSelector);
 
-    $selAttr = $doc->createAttribute('Name');
-    $selAttr->value = key($params);
-    $doc->getElementsByTagName('Selector')->item(0)->appendChild($selAttr);
-
+      $selAttr = $doc->createAttribute('Name');
+      $selAttr->value = $value;
+      $doc->getElementsByTagName('Selector')->item(0)->appendChild($selAttr);
+    }
     return $doc;
+  }
+
+  public function filters($doc, $bEnum)
+  {
+    $dialects = [
+      'WQL' => 'http://schemas.microsoft.com/wbem/wsman/1/WQL',
+      'Filter' => 'http://schemas.dmtf.org/wbem/wsman/1/wsman/SelectorFilter',
+    ];
+
+    $dialect = array_key_exists($this->params['dialect'], $dialects) ? $dialects[$this->params['dialect']] : false;
+    
+    if($dialect) {
+      $bFilter = $doc->createElementNS('http://schemas.dmtf.org/wbem/wsman/1/wsman.xsd', 'n:Filter');
+      $bFilter = $bEnum->appendChild($bFilter);
+
+      $fDialectAttr = $doc->createAttribute('Dialect');
+      $fDialectAttr->value = $dialect;
+
+      $filterElement = $doc->getElementsByTagName('Filter')->item(0);
+      $filterElement->appendChild($fDialectAttr);
+
+      if($dialect == $dialects['Filter']) {
+
+        foreach($this->params['filters'] as $name => $value) {
+          $fSelector = $doc->createElementNS('http://schemas.dmtf.org/wbem/wsman/1/wsman.xsd', 'n:Selector', $name);
+          $hSelector = $bFilter->appendChild($fSelector);
+
+          $selAttr = $doc->createAttribute('Name');
+          $selAttr->value = $value;
+          $doc->getElementsByTagName('Selector')->item(0)->appendChild($selAttr);
+        }
+
+      } elseif($dialect == $dialects['WQL']) {
+        $filterElement->nodeValue = $this->params['query'];
+      }
+      return $doc;
+    }
+    return false;
   }
 
   private function handleAlias($resourceUri)
