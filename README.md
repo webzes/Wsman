@@ -71,9 +71,7 @@ $response = $client->invoke('GetStringValue', 'wmi/root/default/StdRegProv', $pa
 ## TODO
 
 - [x] Support for BASIC Authentication
-- [ ] Support for Digest Authentication
-- [ ] Support for NTLM Authentication
-- [ ] Support for Kerberos Authentication
+- [x] Support for Negotiate Authentication
 - [x] Implement Get Method
 - [x] Implement Identify Method
 - [x] Implement Enumerate Method
@@ -83,5 +81,4 @@ $response = $client->invoke('GetStringValue', 'wmi/root/default/StdRegProv', $pa
 - [ ] Handle Errors and failed requests
 - [x] Use Guzzlehttp client instead of plain CURL
 - [ ] Test againsts non-Windows based devices
-- [ ] Handle/Remove hard-coded Microsoft Schema namespaces in SOAP headers
 - [ ] Handle/Remove hard-coded language tags in SOAP headers
