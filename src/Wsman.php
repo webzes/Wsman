@@ -65,21 +65,39 @@ class Wsman extends SoapClient
     */
     public function enumerate($resourceUri, $params = [])
     {
-      $request = new Request('Enumerate', $this->options, $resourceUri, $params);
-      $this->requestXml = $request->build();
-      $response = $this->__soapCall('enumerate', []);
+		$request = new Request('Enumerate', $this->options, $resourceUri, $params);
+		$this->requestXml = $request->build();
+		$response = $this->__soapCall('enumerate', []);
 
-      $items = [];
-      while( is_array($response) AND array_key_exists('EnumerationContext', $response) ) {
-        $response = $this->pull($resourceUri, $response['EnumerationContext']);
-        $results = current( (array)$response['Items'] );
-        $results = array_map(function($o){return (array)$o;}, (array)$results);
+		$items = [];
+        while( is_array($response) ) {
+			if(!isset($response['Items'])) break;
 
-        array_push( $items, $results );
-      }
+			$results = current( (array)$response['Items'] );
 
-      $allItems = array_merge(...$items);
-      return $allItems;
+			if(is_object($results)) {
+				$items[] = [(array)$results];
+			} else {
+				$results = array_map(function($o){return (array)$o;}, (array)$results);
+				array_push( $items, $results );
+			}
+			
+			if(array_key_exists('EndOfSequence', $response)) break;
+
+			if(!empty($response['EnumerationContext'])) {
+				$response = $this->pull($resourceUri, $response['EnumerationContext']);
+			}
+		}
+
+		if(!empty($items)) {
+
+			if(sizeof($items) > 1) {
+				return array_merge(...$items);
+			} else {
+				return current($items[0]);
+			}
+		}
+		return false;
     }
 
     private function pull($resourceUri, $uuid)
