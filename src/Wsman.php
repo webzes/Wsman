@@ -73,7 +73,7 @@ class Wsman extends SoapClient
       while( is_array($response) AND array_key_exists('EnumerationContext', $response) ) {
         $response = $this->pull($resourceUri, $response['EnumerationContext']);
         $results = current( (array)$response['Items'] );
-        $results = array_map(function($o){return (array)$o;}, $results);
+        $results = array_map(function($o){return (array)$o;}, (array)$results);
 
         array_push( $items, $results );
       }
