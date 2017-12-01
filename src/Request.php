@@ -227,11 +227,11 @@ class Request
     $hSelSet = $header->appendChild($hSelSet);
 
     foreach($this->params as $name => $value) {
-      $hSelector = $doc->createElementNS('http://schemas.dmtf.org/wbem/wsman/1/wsman.xsd', 'w:Selector', $name);
+      $hSelector = $doc->createElementNS('http://schemas.dmtf.org/wbem/wsman/1/wsman.xsd', 'w:Selector', $value);
       $hSelector = $hSelSet->appendChild($hSelector);
 
       $selAttr = $doc->createAttribute('Name');
-      $selAttr->value = $value;
+      $selAttr->value = $name;
       $doc->getElementsByTagName('Selector')->item(0)->appendChild($selAttr);
     }
     return $doc;
