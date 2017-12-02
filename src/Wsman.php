@@ -90,12 +90,7 @@ class Wsman extends SoapClient
 		}
 
 		if(!empty($items)) {
-
-			if(sizeof($items) > 1) {
-				return array_merge(...$items);
-			} else {
-				return current($items[0]);
-			}
+            return array_merge(...$items);
 		}
 		return false;
     }
