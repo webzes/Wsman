@@ -17,6 +17,11 @@ class Request
   protected $resourceUri;
 
   /**
+  * @var string
+  */
+  protected $queryString;
+  
+  /**
   * @var array
   */
   protected $options;
@@ -133,7 +138,7 @@ class Request
     $hSequenceId = $header->appendChild($hSequenceId);
 
     if($this->method == 'Get' AND $this->params) {
-      $doc = $this->selectors($doc, $header);
+      $doc = $this->selectors($doc, $header, $this->params);
     }
 
     $hTimeout = $doc->createElementNS('http://schemas.dmtf.org/wbem/wsman/1/wsman.xsd', 'w:OperationTimeout', 'PT60.000S');
@@ -173,6 +178,11 @@ class Request
       $bMethod = $doc->createElementNS($this->resourceUri, 'p:'.$this->command.'_INPUT');
       $bMethod = $body->appendChild($bMethod);
 
+	  var_dump($this->queryString);
+	  if( $this->queryString ) {
+		  $doc = $this->selectors($doc, $header, $this->queryString);
+	  }
+	  
       foreach($this->params as $k => $v) {
 
         $k = $doc->createElementNS($this->resourceUri, 'p:'.$k, $v);
@@ -221,12 +231,12 @@ class Request
     return $hAction;
   }
 
-  public function selectors($doc, $header)
+  public function selectors($doc, $header, $selectors = false)
   {
     $hSelSet = $doc->createElementNS('http://schemas.dmtf.org/wbem/wsman/1/wsman.xsd', 'w:SelectorSet');
     $hSelSet = $header->appendChild($hSelSet);
 
-    foreach($this->params as $name => $value) {
+    foreach($selectors as $name => $value) {
       $hSelector = $doc->createElementNS('http://schemas.dmtf.org/wbem/wsman/1/wsman.xsd', 'w:Selector', $value);
       $hSelector = $hSelSet->appendChild($hSelector);
 
@@ -290,7 +300,19 @@ class Request
     if(array_key_exists( $inAlias[0], $aliases)) {
       $resourceUri = implode($aliases[$inAlias[0]], explode($inAlias[0], $resourceUri, 2));
     }
-    return $resourceUri;
+	
+	$selectors = parse_url($resourceUri, PHP_URL_QUERY);
+
+	if($selectors) {
+		parse_str($selectors, $this->queryString);
+	}
+	
+	$parsedUrl = parse_url($resourceUri);
+	if(array_key_exists( 'query', $parsedUrl )) {
+		$query = $parsedUrl['query'];
+		return str_replace(array($query,'?'), '', $resourceUri);
+	}
+	return $resourceUri;
   }
 
 }
