@@ -178,7 +178,6 @@ class Request
       $bMethod = $doc->createElementNS($this->resourceUri, 'p:'.$this->command.'_INPUT');
       $bMethod = $body->appendChild($bMethod);
 
-	  var_dump($this->queryString);
 	  if( $this->queryString ) {
 		  $doc = $this->selectors($doc, $header, $this->queryString);
 	  }
