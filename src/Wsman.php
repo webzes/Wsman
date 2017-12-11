@@ -156,13 +156,13 @@ class Wsman extends SoapClient
             $response = $client->post('/wsman', $postOptions);
 
         } catch (GuzzleHttp\Exception\ServerException $e) {
-          echo 'Exception:' . $e->getResponse()->getBody()->getContents();
+          echo 'ServerException: ' . $e->getMessage();
           return;
         } catch (GuzzleHttp\Exception\ClientException $e) {
-          echo 'Exception:' . $e->getResponse()->getBody()->getContents();
+          echo 'ClientException: ' . $e->getMessage();
           return;
         } catch (\GuzzleHttp\Exception\RequestException $e) {
-          echo 'Exception:' . $e->getResponse()->getBody()->getContents();
+          echo 'RequestException: ' . $e->getMessage();
           return;
         }
 
