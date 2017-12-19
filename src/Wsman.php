@@ -4,8 +4,6 @@ namespace c0py\Wsman;
 use SoapClient;
 use c0py\Wsman\Request;
 use GuzzleHttp\Client;
-use GuzzleHttp\Exception\ServerException;
-use GuzzleHttp\Exception\ClientException;
 
 class Wsman extends SoapClient
 {
@@ -143,6 +141,7 @@ class Wsman extends SoapClient
         }
 
         $clientOptions['timeout'] = $this->options['timeout'];
+		$clientOptions['http_errors'] = false;
 
         $client = new Client($clientOptions);
 
@@ -152,24 +151,8 @@ class Wsman extends SoapClient
             'User-Agent'    => 'PHP-SOAP-CURL',
         ];
 
-        try {
-            $response = $client->post('/wsman', $postOptions);
+        $response = $client->post('/wsman', $postOptions);
 
-        } catch (GuzzleHttp\Exception\ServerException $e) {
-          echo 'ServerException: ' . $e->getMessage();
-          return;
-        } catch (GuzzleHttp\Exception\ClientException $e) {
-          echo 'ClientException: ' . $e->getMessage();
-          return;
-        } catch (\GuzzleHttp\Exception\RequestException $e) {
-          echo 'RequestException: ' . $e->getMessage();
-          return;
-        }
-
-        if ($response->getStatusCode() === 200) {
-          return $response->getBody()->getContents();
-        }
-
-        return false;
+        return $response->getBody()->getContents();
     }
 }
