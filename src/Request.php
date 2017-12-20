@@ -184,7 +184,7 @@ class Request
 	  
       foreach($this->params as $k => $v) {
 
-        $k = $doc->createElementNS($this->resourceUri, 'p:'.$k, $v);
+        $k = $doc->createElementNS($this->resourceUri, 'p:'.$k, htmlspecialchars($v));
         $k = $bMethod->appendChild($k);
       }
     }
