@@ -26,6 +26,7 @@ class Wsman extends SoapClient
         $this->options['auth'] = array_key_exists('auth', $this->options) ? $this->options['auth'] : 'basic';
         //default timeout to 2.0 if not specified
         $this->options['timeout'] = array_key_exists('timeout', $this->options) ? $this->options['timeout'] : 2.0;
+	    $this->options['proxy'] = array_key_exists('proxy', $this->options) ? $this->options['proxy'] : false;
 
         parent::__construct(null, $this->options);
     }
@@ -142,6 +143,10 @@ class Wsman extends SoapClient
 
         $clientOptions['timeout'] = $this->options['timeout'];
 		$clientOptions['http_errors'] = false;
+        
+        if($this->options['proxy']) {
+            $clientOptions['proxy'] = $this->options['proxy'];
+        }
 
         $client = new Client($clientOptions);
 
