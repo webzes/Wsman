@@ -1,6 +1,6 @@
 <?php
 
-namespace c0py\Wsman;
+namespace dcone80\Wsman;
 
 use COM;
 
