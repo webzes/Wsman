@@ -1,8 +1,8 @@
 <?php
-namespace c0py\Wsman;
+namespace dcone80\Wsman;
 
 use SoapClient;
-use c0py\Wsman\Request;
+use dcone80\Wsman\Request;
 use GuzzleHttp\Client;
 
 class Wsman extends SoapClient
