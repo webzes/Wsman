@@ -11,7 +11,7 @@ You don't (just yet). The package is not quite ready ^_^
 ### Create a client
 
 ```php
-use c0py\Wsman\Wsman;
+use dcone80\Wsman\Wsman;
 
 $client = new Wsman([
         'location' => "http://TARGET-HOST:5985",
