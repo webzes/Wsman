@@ -1,17 +1,17 @@
 {
-    "name": "c0py/wsman",
+    "name": "dcone80/wsman",
     "description": "WSMan for PHP",
     "type": "library",
     "license": "MIT",
     "authors": [
         {
-            "name": "c0py",
-            "email": "danny.connolly@gmail.com"
+            "name": "Danny Connolly",
+            "email": "admin@dcone.co.uk"
         }
     ],
     "autoload": {
         "psr-4": {
-            "c0py\\Wsman\\": "src/"
+            "dcone80\\Wsman\\": "src/"
         }
     },
     "require": {
