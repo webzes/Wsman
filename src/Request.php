@@ -1,5 +1,5 @@
 <?php
-namespace c0py\Wsman;
+namespace dcone80\Wsman;
 
 use DOMDocument;
 use Ramsey\Uuid\Uuid;
